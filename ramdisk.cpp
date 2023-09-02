@@ -269,7 +269,8 @@ int cpio_commands(int argc, char *argv[]) {
             continue;
 
         if (cmdv[0] == "test"sv) {
-            exit(cpio.test());
+            //exit(cpio.test());
+            return cpio.test();
         } else if (cmdv[0] == "restore"sv) {
             cpio.restore();
         } else if (cmdv[0] == "sha1"sv) {
@@ -279,7 +280,8 @@ int cpio_commands(int argc, char *argv[]) {
         } else if (cmdv[0] == "patch"sv) {
             cpio.patch();
         } else if (cmdc == 2 && cmdv[0] == "exists"sv) {
-            exit(!cpio.exists(cmdv[1]));
+            //exit(!cpio.exists(cmdv[1]));
+            return cpio.exists(cmdv[1]);
         } else if (cmdc == 2 && cmdv[0] == "backup"sv) {
             cpio.backup(cmdv[1]);
         } else if (cmdc >= 2 && cmdv[0] == "rm"sv) {

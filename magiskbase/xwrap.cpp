@@ -36,7 +36,7 @@ FILE *xfdopen(int fd, const char *mode) {
 }
 
 int xopen(const char *pathname, int flags) {
-    int fd = open(pathname, flags);
+    int fd = open(pathname, flags | O_BINARY);
     if (fd < 0) {
         PLOGE("open: %s", pathname);
     }
@@ -44,7 +44,7 @@ int xopen(const char *pathname, int flags) {
 }
 
 int xopen(const char *pathname, int flags, mode_t mode) {
-    int fd = open(pathname, flags, mode);
+    int fd = open(pathname, flags, mode | O_BINARY);
     if (fd < 0) {
         PLOGE("open: %s", pathname);
     }

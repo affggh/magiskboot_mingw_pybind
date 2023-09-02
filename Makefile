@@ -8,7 +8,7 @@ override TOPDIR ?= $(shell cygpath -m $(shell pwd))
 override STATIC ?= 1
 override SVB_MINGW ?= 1
 override SVB_FLAGS ?= -DSVB_WIN32 -DANDROID
-override BUILD_FLAGS ?= -fno-exceptions -fdiagnostics-absolute-paths -Wno-deprecated-non-prototype -DHOST
+override BUILD_FLAGS ?= -fdiagnostics-absolute-paths -Wno-deprecated-non-prototype -DHOST -Wno-incompatible-function-pointer-types
 override BUILD_EXTRAS ?= 0
 override BIN_EXT ?= .exe
 override LIB_EXT ?= .a
@@ -87,6 +87,9 @@ MAGISKBOOT_SRC = \
     cpio.cpp \
     main.cpp
 MAGISKBOOT_OBJ ?= $(patsubst %.cpp,$(OBJ)/magiskboot/%.o,$(MAGISKBOOT_SRC))
+
+MAGISKBOOT_PYBIND_SRC = $(filter-out main.cpp,$(MAGISKBOOT_SRC)) magiskboot_pybind.cpp
+MAGISKBOOT_PYBIND_OBJ = $(patsubst %.cpp,$(OBJ)/magiskboot/%.o,$(MAGISKBOOT_PYBIND_SRC))
 
 LIBBASE_SRC = \
     magiskbase/files.cpp \
@@ -331,13 +334,17 @@ override INCLUDES ?= \
     -I$(TOPDIR)/external/bzip2 \
     -I$(TOPDIR)/external/xz/liblzma/api \
     -I$(TOPDIR)/external/zlib \
-    -I$(TOPDIR)/external/lz4
+    -I$(TOPDIR)/external/lz4 \
+    -I$(TOPDIR)/pybind11/include \
+    $(shell python3-config --includes)
 
 # libmagiskbase always static
 extlib: $(LIB_OUT)/libmincrypt$(LIB_EXT) $(LIB_OUT)/libz$(LIB_EXT) $(LIB_OUT)/liblzma$(LIB_EXT) \
 		$(LIB_OUT)/libbz2$(LIB_EXT) $(LIB_OUT)/liblz4$(LIB_EXT) $(LIB_OUT)/libzopfli$(LIB_EXT) $(LIB_OUT)/libfdt$(LIB_EXT)
 
 magiskboot: extlib $(LIB)/libmagiskbase.a $(OUT)/magiskboot$(BIN_EXT)
+
+pybind: extlib $(LIB)/libmagiskbase.a $(OUT)/magiskboot_pybind$(shell python3-config --extension-suffix)
 
 $(OBJ)/external/zopfli/%.o: $(TOPDIR)/%.c
 	@$(MKDIR) -p `dirname $@`
@@ -357,12 +364,12 @@ $(OBJ)/%.o: $(TOPDIR)/%.c
 $(OBJ)/%.o: %.cpp
 	@$(MKDIR) -p `dirname $@`
 	@echo -e "  CXX\t    `basename $@`"
-	@$(CXX) -static $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 $(OBJ)/magiskboot/%.o: %.cpp
 	@$(MKDIR) -p `dirname $@`
 	@echo -e "  CXX\t    `basename $@`"
-	@$(CXX) -static $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+	@$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 MAGISKBOOT_LD ?= $(LIB)/libmincrypt.a $(LIB)/liblzma.a $(LIB)/libbz2.a \
 		 $(LIB)/liblz4.a $(LIB)/libzopfli.a $(LIB)/libfdt.a $(LIB)/libz.a
@@ -372,7 +379,13 @@ endif
 $(OUT)/magiskboot$(BIN_EXT): $(MAGISKBOOT_OBJ) $(LIB)/libmagiskbase.a $(MAGISKBOOT_LD)
 	@$(MKDIR) -p `dirname $@`
 	@echo -e "  LD\t    `basename $@`"
-	@$(CXX) $(CXXFLAGS) $^ -o $@ -static $(LDFLAGS) $(BIN_RES) $(LIBS)
+	@$(CXX) $^ -o $@ -static $(LDFLAGS) $(BIN_RES) $(LIBS) -lc++
+	@$(STRIP) $(STRIPFLAGS) $@
+
+$(OUT)/magiskboot_pybind$(shell python3-config --extension-suffix): $(MAGISKBOOT_PYBIND_OBJ) $(LIB)/libmagiskbase.a $(MAGISKBOOT_LD)
+	@$(MKDIR) -p `dirname $@`
+	@echo -e "  LD\t    `basename $@`"
+	@$(CXX) -std=c++17 $(INCLUDES) -fexceptions -shared -fPIC -O3 $^ -o $@ $(LIBS) -lc++ $(shell python3-config --libs)
 	@$(STRIP) $(STRIPFLAGS) $@
 
 $(LIB)/libmagiskbase.a: $(LIBBASE_OBJ)

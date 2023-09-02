@@ -158,8 +158,9 @@ static bool dtb_patch(const char *file) {
     return patched;
 }
 
-[[noreturn]]
-static void dtb_test(const char *file) {
+//[[noreturn]]
+static int dtb_test(const char *file) {
+    int ret = 0;
     for_each_fdt(file, false, [&](uint8_t *fdt) {
         // Find the system node in fstab
         if (int fstab = find_fstab(fdt); fstab >= 0) {
@@ -171,13 +172,15 @@ static void dtb_test(const char *file) {
                 if (auto value = fdt_getprop(fdt, node, "mnt_point", &len)) {
                     // If mnt_point is set to /system_root, abort!
                     if (strncmp(static_cast<const char *>(value), "/system_root", len) == 0) {
-                        exit(1);
+                        //exit(1);
+                        ret = 1;
                     }
                 }
             }
         }
     });
-    exit(0);
+    //exit(0);
+    return ret;
 }
 
 int dtb_commands(int argc, char *argv[]) {
@@ -190,10 +193,11 @@ int dtb_commands(int argc, char *argv[]) {
         return 0;
     } else if (argv[0] == "patch"sv) {
         if (!dtb_patch(dtb))
-            exit(1);
+            //exit(1);
+            return 1;
         return 0;
     } else if (argv[0] == "test"sv) {
-        dtb_test(dtb);
+        return dtb_test(dtb);
     } else {
         return 1;
     }

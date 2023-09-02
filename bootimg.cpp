@@ -537,7 +537,7 @@ write_zero(fd, align_padding(lseek(fd, 0, SEEK_CUR) - off.header, page_size))
 
 #define file_align() file_align_with(boot.hdr->page_size())
 
-void repack(const char *src_img, const char *out_img, bool skip_comp) {
+int repack(const char *src_img, const char *out_img, bool skip_comp) {
     const boot_img boot(src_img);
     fprintf(stderr, "Repack to image: [%s]\n", out_img);
 
@@ -821,4 +821,5 @@ void repack(const char *src_img, const char *out_img, bool skip_comp) {
         auto b_hdr = reinterpret_cast<blob_hdr *>(out.buf);
         b_hdr->size = off.total - sizeof(blob_hdr);
     }
+    return 0;
 }
