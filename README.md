@@ -1,5 +1,6 @@
 # MagiskBoot - Boot Image Modification Tool
-The most complete tool for unpacking and repacking Android boot images.
+The most complete tool for unpacking and repacking Android boot images.    
+pybind11 on magiskboot on mingw32/64
 
 **Note**: This is a minimal (dirty) copy of topjohnwu's [MagiskBoot](https://github.com/topjohnwu/Magisk/tree/master/native/src/boot).
 
@@ -7,8 +8,7 @@ The most complete tool for unpacking and repacking Android boot images.
 - [MagiskBoot Documentation](https://topjohnwu.github.io/Magisk/tools.html#magiskboot)
 
 ## Build
-- Using MSYS2 `clang64` environment with `mingw-w64-clang-x86_64-toolchain` packages group, LLVM version 14 and up, run `mingw32-make` command. (`magiskboot.exe` will appear in the `out` folder).
-- if built a non-static variant, all DLLs in `out/obj/lib/shared` must be present in your PATH for successful execution. 
+- Using MSYS2 `mingw32/64` environment with `mingw-w64-i686/x86_64-toolchain` packages group, `python3`, LLVM version 14 and up, run `make pybind` command. (`magiskboot_pybind.[target].pyd` will appear in the `out` folder).
 
 ## What's changed:
 - `cpio` action `extract` with no paramaters to `ramdisk` folder in current directory.
